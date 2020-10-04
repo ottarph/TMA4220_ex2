@@ -33,12 +33,17 @@ class Femsolver:
                               [ 1/3, -8/3,  7/3]], dtype=float)
 
 
-        """------------- Active solver parameters -------------"""
+        """------------- Active solver variables -------------"""
 
         """ Degree of polynomial interpolant """
         self.p = None
         """ Number of elements """
         self.N = None
+
+        """ Triangulation """
+        self.nodes = None
+        self.edge_nodes = None
+        self.elements = None
 
 
         """ Stiffness matrix """
@@ -46,12 +51,19 @@ class Femsolver:
         """ Load vector """
         self.F = None
 
+        return
 
+
+    def build_triangulation(self, N):
+        self.nodes = np.linspace(self.a, self.b, N+2)
+        self.edge_nodes = [self.nodes[0], self.nodes[-1]]
+        self.elements = [[self.nodes[i-1], self.nodes[i]] for i in range(1, N+2)]
 
     def build_stiffness_matrix(self, p, N):
         pass
 
-
+    def build_load_vector(self, p, N):
+        pass
 
 
 def main():
@@ -66,8 +78,9 @@ def main():
 
     femsolver = Femsolver(sigma, f, a, b, u_1, u_2)
 
-    print(femsolver.Ke_1)
-    print(femsolver.Ke_2)
+    N = 4
+    femsolver.build_triangulation(N)
+    print(femsolver.elements)
 
     return
 
