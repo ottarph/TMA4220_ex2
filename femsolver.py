@@ -95,7 +95,7 @@ class Femsolver:
 
             """ For each element in triangulation """
             for i in range(self.K):
-                self.A[i:i+2,i:i+2] += self.h[i] * Ke
+                self.A[i:i+2,i:i+2] += Ke / self.h[i]
             
             self.A = self.A[1:-1,1:-1]
 
@@ -138,16 +138,23 @@ class Femsolver:
 
     def solve_linear_system(self):
         
-        self.u = np.linalg.solve(self.A, self.F)
+        self.u = np.zeros_like(self.nodes)
+
+        self.u[1:-1] = np.linalg.solve(self.A, self.F)
+
+        self.u[0] = self.u_1
+        self.u[-1] = self.u_2
 
         return
 
     def plot_solution(self):
-        pass
+        
+        xx = self.nodes
+        yy = self.u
 
+        plt.plot(xx, yy, 'k--', label="$u_h$")
 
-
-
+        return
 
 
 def main():
@@ -162,15 +169,29 @@ def main():
 
     femsolver = Femsolver(sigma, f, a, b, u_1, u_2)
 
-    N = 4
+    N = 20
     p = 1
     femsolver.build_triangulation(N)
     femsolver.build_stiffness_matrix(p)
-    print(femsolver.A)
+    #print(femsolver.A / femsolver.h[0])
     femsolver.build_load_vector(p)
-    print(femsolver.F)
+    #print(femsolver.F)
     femsolver.solve_linear_system()
-    print(femsolver.u)
+    #print(femsolver.u)
+    femsolver.plot_solution()
+
+    """ plot exact solution """
+    xx = np.linspace(a, b, 200)
+    yy = np.sin(np.pi * xx)
+    plt.plot(xx, yy, 'k-', label=r"$u_{ex}$")
+
+    """ plot error """
+    xx = femsolver.nodes
+    yy = np.sin(np.pi * xx) - femsolver.u
+    plt.plot(xx, yy, 'k:', label=r"$u_{ex} - u_h$")
+
+    plt.legend()
+    plt.show()
 
     return
 
