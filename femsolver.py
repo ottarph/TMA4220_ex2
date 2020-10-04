@@ -33,6 +33,10 @@ class Femsolver:
         """ p = 1 """
         self.Ke_1 = np.array([[ 1, -1],
                               [-1,  1]], dtype=float)
+
+        self.Le_1 = np.array([[1/3, 1/6],
+                              [1/6, 1/3]], dtype=float)
+
         """ p = 2 """
         self.Ke_2 = np.array([[ 7/3, -8/3,  1/3],
                               [-8/3, 16/3, -8/3],
@@ -94,10 +98,11 @@ class Femsolver:
 
         if p == 1:
             Ke = self.Ke_1
+            Le = self.Le_1
 
             """ For each element in triangulation """
             for i in range(self.K):
-                self.A[i:i+2,i:i+2] += Ke / self.h[i]
+                self.A[i:i+2,i:i+2] += ( Ke + self.sigma * Le ) / self.h[i]
             
             self.A = self.A[1:-1,1:-1]
 
@@ -128,8 +133,8 @@ class Femsolver:
 
                 self.F[i:i+2] += hi * Me
 
-            self.F[1] -= self.h[0] * self.u_1
-            self.F[self.N] -= self.h[self.N] * self.u_2
+            self.F[1] += ( -1 + self.sigma / 6 ) * self.h[0] * self.u_1
+            self.F[self.N] += ( -1 + self.sigma / 6 ) * self.h[self.N] * self.u_2
 
             self.F = self.F[1:-1]
 
@@ -137,6 +142,7 @@ class Femsolver:
             raise NotImplementedError
 
         return
+
 
     def solve_linear_system(self):
         
