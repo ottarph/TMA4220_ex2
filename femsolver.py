@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
 from gauss_quadrature import *
 
 
@@ -141,7 +143,7 @@ class Femsolver:
         return
 
     def plot_solution(self):
-
+        pass
 
 
 
