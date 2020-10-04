@@ -1,4 +1,6 @@
 import numpy as np
+import scipy.sparse
+import scipy.sparse.linalg
 import matplotlib
 import matplotlib.pyplot as plt
 from gauss_quadrature import *
@@ -147,6 +149,21 @@ class Femsolver:
 
         return
 
+    def solve_linear_system_sparse(self):
+
+        self.u = np.zeros_like(self.nodes)
+        A_s = scipy.sparse.csc_matrix(self.A)
+
+        u_h, exit_code = scipy.sparse.linalg.cg(A_s, self.F)
+
+        if exit_code == 0:
+            self.u[1:-1] = u_h
+        else:
+            raise Exception("CG did not converge")
+
+        return
+
+
     def plot_solution(self):
         
         xx = self.nodes
@@ -169,15 +186,24 @@ def main():
 
     femsolver = Femsolver(sigma, f, a, b, u_1, u_2)
 
-    N = 20
+    N = 200
     p = 1
+
     femsolver.build_triangulation(N)
     femsolver.build_stiffness_matrix(p)
-    #print(femsolver.A / femsolver.h[0])
     femsolver.build_load_vector(p)
-    #print(femsolver.F)
-    femsolver.solve_linear_system()
-    #print(femsolver.u)
+
+    from time import time
+    
+    start = time()
+    #femsolver.solve_linear_system()
+    end = time()
+    #print(f'Normal solving: {(end-start)*1e3:.2f} ms')
+    start = time()
+    femsolver.solve_linear_system_sparse()
+    end = time()
+    print(f'Sparse solving:  {(end-start)*1e3:.2f} ms')
+
     femsolver.plot_solution()
 
     """ plot exact solution """

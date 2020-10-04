@@ -1,7 +1,3 @@
-import numpy as np
-
-
-
 
 
 def gauss_quad(f, a, b, n):
