@@ -41,6 +41,10 @@ class Femsolver:
         self.Ke_2 = np.array([[ 7/3, -8/3,  1/3],
                               [-8/3, 16/3, -8/3],
                               [ 1/3, -8/3,  7/3]], dtype=float)
+            
+        self.Le_2 = np.array([[ 2/15, 1/15, -1/30],
+                              [ 1/15, 8/15,  1/15],
+                              [-1/30, 1/15,  2/15]], dtype=float)
 
 
         """------------- Active solver variables -------------"""
@@ -104,6 +108,7 @@ class Femsolver:
             for i in range(self.K):
                 self.A[i:i+2,i:i+2] += ( Ke + self.sigma * Le ) / self.h[i]
             
+            """ Slice down from proto-problem """
             self.A = self.A[1:-1,1:-1]
 
         elif p == 2:
@@ -136,6 +141,7 @@ class Femsolver:
             self.F[1] += ( -1 + self.sigma / 6 ) * self.h[0] * self.u_1
             self.F[self.N] += ( -1 + self.sigma / 6 ) * self.h[self.N] * self.u_2
 
+            """ Slice down from proto-problem """
             self.F = self.F[1:-1]
 
         elif p == 2:
@@ -192,7 +198,7 @@ def main():
 
     femsolver = Femsolver(sigma, f, a, b, u_1, u_2)
 
-    N = 200
+    N = 2000
     p = 1
 
     femsolver.build_triangulation(N)
