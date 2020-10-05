@@ -193,7 +193,7 @@ class Femsolver:
                 Me3 = gauss_quad(lambda x: x * (2*x - 1) * g(x), 0, 1, self.quad_samples)
                 Me = np.array([Me1, Me2, Me3], dtype=float)
 
-                self.F[i:i+3] += hi * Me
+                self.F[2*i:2*i+3] += hi * Me
 
             """ Apply boundary conditions """
             self.F[1] += -self.u_1 / self.h[0] * 8/3 + self.u_1 * self.sigma * self.h[0] / 15
@@ -250,6 +250,7 @@ class Femsolver:
 
 
 def main():
+    from time import time
 
     sigma = 0
     u_ex = lambda x: np.sin(np.pi * x)
@@ -261,20 +262,17 @@ def main():
 
     femsolver = Femsolver(sigma, f, a, b, u_1, u_2)
 
-    N = 200
+    N = 2000
     p = 2
 
     femsolver.build_triangulation(N, p)
 
-    print(femsolver.elements)
-    print(femsolver.h)
-
+    start = time()
     femsolver.build_stiffness_matrix(p)
-    print(femsolver.A.round(2) * femsolver.h[0] * 3)    
+    end = time()
+    print(f'Dense building: {(end-start)*1e3:.2f} ms')   
 
     femsolver.build_load_vector(p)
-
-    from time import time
     
     start = time()
     #femsolver.solve_linear_system()
@@ -283,7 +281,7 @@ def main():
     start = time()
     femsolver.solve_linear_system_sparse()
     end = time()
-    print(f'Sparse solving:  {(end-start)*1e3:.2f} ms')
+    print(f'Sparse solving: {(end-start)*1e3:.2f} ms')
 
     femsolver.plot_solution()
 
