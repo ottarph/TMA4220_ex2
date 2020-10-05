@@ -76,9 +76,6 @@ class Femsolver:
 
     def build_triangulation(self, N, p):
 
-        if self.p != None:
-            assert p == self.p
-
         self.p = p
 
         if p == 1:
@@ -171,9 +168,9 @@ class Femsolver:
 
             """ Apply boundary conditions """
             #self.F[1] += ( -1 + self.sigma / 6 ) * self.h[0] * self.u_1
-            self.F[1] += -self.u_1 / self.h[0] + self.u_1 * self.sigma * self.h[0] / 6
+            self.F[1] -= -self.u_1 / self.h[0] + self.u_1 * self.sigma * self.h[0] / 6
             #self.F[self.N-1] += ( -1 + self.sigma / 6 ) * self.h[self.N-1] * self.u_2
-            self.F[self.N-1] += -self.u_2 / self.h[self.N-1] + self.u_2 * self.sigma * self.h[self.N-1] / 6
+            self.F[self.N-1] -= -self.u_2 / self.h[self.N-1] + self.u_2 * self.sigma * self.h[self.N-1] / 6
 
             """ Slice down from proto-problem """
             self.F = self.F[1:-1]
@@ -196,11 +193,11 @@ class Femsolver:
                 self.F[2*i:2*i+3] += hi * Me
 
             """ Apply boundary conditions """
-            self.F[1] += -self.u_1 / self.h[0] * 8/3 + self.u_1 * self.sigma * self.h[0] / 15
-            self.F[2] += -self.u_1 / self.h[0] * 1/3 - self.u_1 * self.sigma * self.h[0] / 30
+            self.F[1] -= -self.u_1 / self.h[0] * 8/3 + self.u_1 * self.sigma * self.h[0] / 15
+            self.F[2] -= -self.u_1 / self.h[0] * 1/3 - self.u_1 * self.sigma * self.h[0] / 30
 
-            self.F[2*self.N-2] += -self.u_2 / self.h[self.N-1] * 1/3 - self.u_2 * self.sigma * self.h[self.N-1] / 30
-            self.F[2*self.N-1] += -self.u_2 / self.h[self.N-1] * 8/3 + self.u_2 * self.sigma * self.h[self.N-1] / 15
+            self.F[2*self.N-2] -= -self.u_2 / self.h[self.N-1] * 1/3 - self.u_2 * self.sigma * self.h[self.N-1] / 30
+            self.F[2*self.N-1] -= -self.u_2 / self.h[self.N-1] * 8/3 + self.u_2 * self.sigma * self.h[self.N-1] / 15
 
             """ Slice down from proto-problem """
             self.F = self.F[1:-1]
@@ -237,6 +234,9 @@ class Femsolver:
             raise Exception("CG did not converge")
 
         return
+
+    def error(self, u_ex):
+        pass
 
 
     def plot_solution(self):
