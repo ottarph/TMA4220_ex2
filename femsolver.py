@@ -167,9 +167,7 @@ class Femsolver:
                 self.F[i:i+2] += hi * Me
 
             """ Apply boundary conditions """
-            #self.F[1] += ( -1 + self.sigma / 6 ) * self.h[0] * self.u_1
             self.F[1] -= -self.u_1 / self.h[0] + self.u_1 * self.sigma * self.h[0] / 6
-            #self.F[self.N-1] += ( -1 + self.sigma / 6 ) * self.h[self.N-1] * self.u_2
             self.F[self.N-1] -= -self.u_2 / self.h[self.N-1] + self.u_2 * self.sigma * self.h[self.N-1] / 6
 
             """ Slice down from proto-problem """
@@ -194,9 +192,9 @@ class Femsolver:
 
             """ Apply boundary conditions """
             self.F[1] -= -self.u_1 / self.h[0] * 8/3 + self.u_1 * self.sigma * self.h[0] / 15
-            self.F[2] -= -self.u_1 / self.h[0] * 1/3 - self.u_1 * self.sigma * self.h[0] / 30
+            self.F[2] -=  self.u_1 / self.h[0] * 1/3 - self.u_1 * self.sigma * self.h[0] / 30
 
-            self.F[2*self.N-2] -= -self.u_2 / self.h[self.N-1] * 1/3 - self.u_2 * self.sigma * self.h[self.N-1] / 30
+            self.F[2*self.N-2] -=  self.u_2 / self.h[self.N-1] * 1/3 - self.u_2 * self.sigma * self.h[self.N-1] / 30
             self.F[2*self.N-1] -= -self.u_2 / self.h[self.N-1] * 8/3 + self.u_2 * self.sigma * self.h[self.N-1] / 15
 
             """ Slice down from proto-problem """
