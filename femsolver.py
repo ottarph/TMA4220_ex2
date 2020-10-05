@@ -51,10 +51,8 @@ class Femsolver:
 
         """ Degree of polynomial interpolant """
         self.p = None
-        """ Number of nodes """
-        self.N = None
         """ Number of elements """
-        self.K = None
+        self.N = None
 
         """ Gauss-Legendre quadrature sample points, set for now. """
         self.quad_samples = 5
@@ -77,16 +75,15 @@ class Femsolver:
 
 
     def build_triangulation(self, N):
-        """ N+2 nodes, the edge nodes x_0, x_N+1 and N internal nodes x_1,...,x_N """
-        self.nodes = np.linspace(self.a, self.b, N+2)
+        """ N+1 nodes for N elements, the edge nodes x_0, x_N+1 and N internal nodes x_1,...,x_N """
+        self.nodes = np.linspace(self.a, self.b, N+1)
         self.edge_nodes = [self.nodes[0], self.nodes[-1]]
         """ For 1D, K = N+1 elements in the triangulation """
-        self.elements = [[self.nodes[i-1], self.nodes[i]] for i in range(1, N+2)]
+        self.elements = [[self.nodes[i-1], self.nodes[i]] for i in range(1, N+1)]
 
         self.h = self.nodes[1:] - self.nodes[:-1]
 
         self.N = N
-        self.K = N+1
 
         return
 
@@ -98,14 +95,14 @@ class Femsolver:
         
         self.p = p
 
-        self.A = np.zeros((self.N+2,self.N+2), dtype=float)
+        self.A = np.zeros((self.N+1,self.N+1), dtype=float)
 
         if p == 1:
             Ke = self.Ke_1
             Le = self.Le_1
 
             """ For each element in triangulation """
-            for i in range(self.K):
+            for i in range(self.N):
                 self.A[i:i+2,i:i+2] += ( Ke + self.sigma * Le ) / self.h[i]
             
             """ Slice down from proto-problem """
@@ -122,12 +119,12 @@ class Femsolver:
         if self.elements == None:
             raise Exception("Require triangulation before building stiffness matrix.")
         
-        self.F = np.zeros(self.N+2)
+        self.F = np.zeros(self.N+1)
 
         if p == 1:
 
             """ For each element in triangulation """
-            for i in range(self.K):
+            for i in range(self.N):
                 x0, x1 = self.elements[i]
                 hi = self.h[i]
                 g = lambda x: self.f(x0 + hi * x)
@@ -139,7 +136,7 @@ class Femsolver:
                 self.F[i:i+2] += hi * Me
 
             self.F[1] += ( -1 + self.sigma / 6 ) * self.h[0] * self.u_1
-            self.F[self.N] += ( -1 + self.sigma / 6 ) * self.h[self.N] * self.u_2
+            self.F[self.N-1] += ( -1 + self.sigma / 6 ) * self.h[self.N-1] * self.u_2
 
             """ Slice down from proto-problem """
             self.F = self.F[1:-1]
