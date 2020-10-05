@@ -234,7 +234,37 @@ class Femsolver:
         return
 
     def error(self, u_ex):
-        pass
+        
+        assert type(self.u) != None
+
+        if self.p == 1:
+
+            raise NotImplementedError
+
+        
+        """ This does not work """
+
+        elif self.p == 2:
+            
+            E = 0
+
+            for i in range(self.N):
+                
+                x0, x1, x2 = self.elements[i]
+                u0, u1, u2 = self.u[2*i:2*i+3]
+                
+                chi = lambda x: x0 + (x2 - x0) * x
+                chi = lambda x: x / self.h[i] + x0
+
+                phi0 = lambda x: (x - 1) * (2*x - 1)
+                phi1 = lambda x: 4*(1 - x) * x
+                phi2 = lambda x: x * (2*x - 1)
+
+                uh = lambda x: u0 * phi0(chi(x)) + u1 * phi1(chi(x)) + u2 * phi2(chi(x))
+
+                E +=  self.h[i]*gauss_quad(lambda x: ( u_ex(x) - uh(x) )**2, x0, x2, 5)
+
+            return np.sqrt(E)
 
 
     def plot_solution(self):
@@ -260,7 +290,7 @@ def main():
 
     femsolver = Femsolver(sigma, f, a, b, u_1, u_2)
 
-    N = 2000
+    N = 1000
     p = 2
 
     femsolver.build_triangulation(N, p)
@@ -273,13 +303,15 @@ def main():
     femsolver.build_load_vector(p)
     
     start = time()
-    #femsolver.solve_linear_system()
+    femsolver.solve_linear_system()
     end = time()
-    #print(f'Normal solving: {(end-start)*1e3:.2f} ms')
+    print(f'Normal solving: {(end-start)*1e3:.2f} ms')
     start = time()
-    femsolver.solve_linear_system_sparse()
+    #femsolver.solve_linear_system_sparse()
     end = time()
-    print(f'Sparse solving: {(end-start)*1e3:.2f} ms')
+    #print(f'Sparse solving: {(end-start)*1e3:.2f} ms')
+
+    print(f'Error = {femsolver.error(u_ex)}')
 
     femsolver.plot_solution()
 
