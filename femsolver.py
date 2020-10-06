@@ -239,11 +239,25 @@ class Femsolver:
 
         if self.p == 1:
 
-            raise NotImplementedError
+            E = 0
+
+            for i in range(self.N):
+                
+                x0, x1 = self.elements[i]
+                u0, u1 = self.u[i:i+2]
+                
+                chi = lambda x: (x - x0) / self.h[i]
+
+                phi0 = lambda x: 1 - x
+                phi1 = lambda x: x
+
+                uh = lambda x: u0 * phi0(chi(x)) + u1 * phi1(chi(x))
+
+                E += gauss_quad(lambda x: ( u_ex(x) - uh(x) )**2, x0, x1, 5)
+            
+            return np.sqrt(E)
 
         
-        """ This does not work """
-
         elif self.p == 2:
             
             E = 0
@@ -253,16 +267,37 @@ class Femsolver:
                 x0, x1, x2 = self.elements[i]
                 u0, u1, u2 = self.u[2*i:2*i+3]
                 
-                chi = lambda x: x0 + (x2 - x0) * x
-                chi = lambda x: x / self.h[i] + x0
+                chi = lambda x: (x - x0) / self.h[i]
 
                 phi0 = lambda x: (x - 1) * (2*x - 1)
                 phi1 = lambda x: 4*(1 - x) * x
                 phi2 = lambda x: x * (2*x - 1)
 
+
                 uh = lambda x: u0 * phi0(chi(x)) + u1 * phi1(chi(x)) + u2 * phi2(chi(x))
 
-                E +=  self.h[i]*gauss_quad(lambda x: ( u_ex(x) - uh(x) )**2, x0, x2, 5)
+                '''
+                plt.figure()
+                xx = np.linspace(x0, x2, 200)
+                plt.plot(xx, phi0(chi(xx)), label='r$\varphi_0$')
+                plt.plot(xx, phi1(chi(xx)), label='r$\varphi_1$')
+                plt.plot(xx, phi2(chi(xx)), label='r$\varphi_2$')
+                plt.legend()
+                plt.show()
+                '''
+                '''
+                plt.figure()
+                xx = np.linspace(x0, x2, 200)
+                plt.plot(xx, uh(xx), label='$u_h$')
+                plt.plot(xx, u_ex(xx), 'k-', label='$u$')
+                plt.plot(xx, uh(xx) - u_ex(xx), 'k:', label='$e$')
+                plt.legend()
+                print(u0, u1, u2)
+                plt.show()
+                #assert 0
+                '''
+
+                E += gauss_quad(lambda x: ( u_ex(x) - uh(x) )**2, x0, x2, 5)
 
             return np.sqrt(E)
 
@@ -291,27 +326,67 @@ def main():
     femsolver = Femsolver(sigma, f, a, b, u_1, u_2)
 
     N = 1000
-    p = 2
+    p = 1
 
-    femsolver.build_triangulation(N, p)
+    E1 = []
+    E2 = []
 
-    start = time()
-    femsolver.build_stiffness_matrix(p)
-    end = time()
-    print(f'Dense building: {(end-start)*1e3:.2f} ms')   
+    Ns = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
+    for N in Ns:
 
-    femsolver.build_load_vector(p)
-    
-    start = time()
-    femsolver.solve_linear_system()
-    end = time()
-    print(f'Normal solving: {(end-start)*1e3:.2f} ms')
-    start = time()
-    #femsolver.solve_linear_system_sparse()
-    end = time()
-    #print(f'Sparse solving: {(end-start)*1e3:.2f} ms')
+        print(N)
 
-    print(f'Error = {femsolver.error(u_ex)}')
+        p = 1
+        print(p)
+
+        femsolver.build_triangulation(N, p)
+        femsolver.build_stiffness_matrix(p)
+        femsolver.build_load_vector(p)
+        
+        femsolver.solve_linear_system()
+
+        E = femsolver.error(u_ex)
+        E1.append(E)
+
+        p = 2
+        print(p)
+
+        femsolver.build_triangulation(N, p)
+        femsolver.build_stiffness_matrix(p)
+        femsolver.build_load_vector(p)
+        
+        femsolver.solve_linear_system()
+
+        E = femsolver.error(u_ex)
+        E2.append(E)
+
+    #print(E1)
+    #print(E2)
+    Ns = np.array(Ns)
+    E1 = np.array(E1)
+    E2 = np.array(E2)
+
+    plt.loglog(Ns, E1, 'k--')
+    plt.loglog(Ns, E2, 'k:')
+
+    def beta(x, y):
+        '''
+            Estimator for the coefficient of beta in linear regression model
+                y = alpha + beta * x
+        '''
+        n = x.shape[0]
+        
+        beta = np.sum( (x - np.mean(x)) * (y - np.mean(y))) / np.sum( (x - np.mean(x))**2 )
+
+        return beta
+
+
+    beta1 = beta(np.log(Ns), np.log(E1))
+    print(beta1)
+    beta2 = beta(np.log(Ns), np.log(E2))
+    print(beta2)
+
+    plt.figure()
 
     femsolver.plot_solution()
 
