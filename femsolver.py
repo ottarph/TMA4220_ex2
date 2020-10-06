@@ -233,6 +233,7 @@ class Femsolver:
 
         return
 
+
     def error(self, u_ex):
         
         assert type(self.u) != None
@@ -273,29 +274,7 @@ class Femsolver:
                 phi1 = lambda x: 4*(1 - x) * x
                 phi2 = lambda x: x * (2*x - 1)
 
-
                 uh = lambda x: u0 * phi0(chi(x)) + u1 * phi1(chi(x)) + u2 * phi2(chi(x))
-
-                '''
-                plt.figure()
-                xx = np.linspace(x0, x2, 200)
-                plt.plot(xx, phi0(chi(xx)), label='r$\varphi_0$')
-                plt.plot(xx, phi1(chi(xx)), label='r$\varphi_1$')
-                plt.plot(xx, phi2(chi(xx)), label='r$\varphi_2$')
-                plt.legend()
-                plt.show()
-                '''
-                '''
-                plt.figure()
-                xx = np.linspace(x0, x2, 200)
-                plt.plot(xx, uh(xx), label='$u_h$')
-                plt.plot(xx, u_ex(xx), 'k-', label='$u$')
-                plt.plot(xx, uh(xx) - u_ex(xx), 'k:', label='$e$')
-                plt.legend()
-                print(u0, u1, u2)
-                plt.show()
-                #assert 0
-                '''
 
                 E += gauss_quad(lambda x: ( u_ex(x) - uh(x) )**2, x0, x2, 5)
 
