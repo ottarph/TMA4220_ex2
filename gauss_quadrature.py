@@ -28,6 +28,22 @@ def main():
     print(gauss_quad(f, x0, x1, 5))
     print(I)
 
+    import numpy as np
+    #np.random.seed(1)
+    x0, x1 = -2, 2
+    n = 5
+    p = 2*n - 1
+    print(n)
+    print(p)
+    C = np.random.random(p+1) * 10
+    #C = np.arange(1, p+1 + 1)
+    print(C)
+    print([f'{C[i]}*x^{p-i}' for i in range(p+1)])
+    
+    f = lambda x: sum(C[i] * x**(p-i) for i in range(p+1))
+    I = sum(C[i] * (x1**(p+1-i)-x0**(p+1-i)) / (p+1-i) for i in range(p+1))
+    print(gauss_quad(f, x0, x1, 5))
+    print(I)
 
     return
 
