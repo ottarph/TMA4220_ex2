@@ -13,15 +13,20 @@ def gauss_quad(f, a, b, n):
     if n != 5:
         raise NotImplementedError
             
-    return sum(r * f(a + h * q) for r, q in zip(rr, qq))
+    return h * sum(r * f(a + h * q) for r, q in zip(rr, qq))
 
 
 def main():
     
-    a, b, c, d = [1, 2, 3, 4]
+    a, b, c, d = [4, 2, 3, 10]
     f = lambda t: a * t**3 + b * t**2 + c * t + d
 
-    print(gauss_quad(f, 0, 1, 5))
+    x0, x1 = -3, 2
+
+    I = 0.25 * a * (x1**4-x0**4) + b/3 * (x1**3-x0**3) + 0.5 * c * (x1**2-x0**2) + d * (x1 - x0)
+
+    print(gauss_quad(f, x0, x1, 5))
+    print(I)
 
 
     return
