@@ -281,12 +281,15 @@ class Femsolver:
             return np.sqrt(E)
 
 
-    def plot_solution(self):
+    def plot_solution(self, ax=None):
         
         xx = self.nodes
         yy = self.u
 
-        plt.plot(xx, yy, 'k--', label="$u_h$")
+        if ax is None:
+            plt.plot(xx, yy, 'k--', label="$u_h$")
+        else:
+            ax.plot(xx, yy, 'k--', label="$u_h$")
 
         return
 
@@ -314,6 +317,8 @@ def main():
     for N in Ns:
 
         print(N)
+        if N < 64:
+            fig, axs = plt.subplots(1,2)
 
         p = 1
         print(p)
@@ -327,6 +332,9 @@ def main():
         E = femsolver.error(u_ex)
         E1.append(E)
 
+        if N < 64:
+            femsolver.plot_solution(ax=axs[0])
+
         p = 2
         print(p)
 
@@ -339,12 +347,16 @@ def main():
         E = femsolver.error(u_ex)
         E2.append(E)
 
+        if N < 64:
+            femsolver.plot_solution(ax=axs[1])
+
     #print(E1)
     #print(E2)
     Ns = np.array(Ns)
     E1 = np.array(E1)
     E2 = np.array(E2)
 
+    plt.figure()
     plt.loglog(Ns, E1, 'k--')
     plt.loglog(Ns, E2, 'k:')
 
@@ -365,21 +377,6 @@ def main():
     beta2 = beta(np.log(Ns), np.log(E2))
     print(beta2)
 
-    plt.figure()
-
-    femsolver.plot_solution()
-
-    """ plot exact solution """
-    xx = np.linspace(a, b, 200)
-    yy = np.sin(np.pi * xx)
-    plt.plot(xx, yy, 'k-', label=r"$u_{ex}$")
-
-    """ plot error """
-    xx = femsolver.nodes
-    yy = np.sin(np.pi * xx) - femsolver.u
-    plt.plot(xx, yy, 'k:', label=r"$u_{ex} - u_h$")
-
-    plt.legend()
     plt.show()
 
     return
