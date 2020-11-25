@@ -281,17 +281,64 @@ class Femsolver:
             return np.sqrt(E)
 
 
-    def plot_solution(self, ax=None):
+    def plot_solution(self, simple=True, ax=None):
         
-        xx = self.nodes
-        yy = self.u
 
-        if ax is None:
-            plt.plot(xx, yy, 'k--', label="$u_h$")
+        if simple:
+            xx = self.nodes
+            yy = self.u
+
+            if ax is None:
+                plt.plot(xx, yy, 'k--', label="$u_h$")
+            else:
+                ax.plot(xx, yy, 'k--', label="$u_h$")
+
+            return
+
         else:
-            ax.plot(xx, yy, 'k--', label="$u_h$")
 
-        return
+            if ax is None:
+                ax = plt.gca()
+
+            points = 1000
+            elpoints = points // len(self.elements)
+
+            for i in range(self.N):
+
+                if self.p == 1:
+
+                    x0, x1 = self.elements[i]
+                    u0, u1 = self.u[i:i+2]
+                    
+                    chi = lambda x: (x - x0) / self.h[i]
+
+                    phi0 = lambda x: 1 - x
+                    phi1 = lambda x: x
+
+                    uh = lambda x: u0 * phi0(chi(x)) + u1 * phi1(chi(x))
+
+                    xx = np.linspace(x0, x1, elpoints)
+
+                    ax.plot(xx, uh(xx), 'k-')
+
+                elif self.p == 2:
+                
+                    x0, x1, x2 = self.elements[i]
+                    u0, u1, u2 = self.u[2*i:2*i+3]
+                    
+                    chi = lambda x: (x - x0) / self.h[i]
+
+                    phi0 = lambda x: (x - 1) * (2*x - 1)
+                    phi1 = lambda x: 4*(1 - x) * x
+                    phi2 = lambda x: x * (2*x - 1)
+
+                    uh = lambda x: u0 * phi0(chi(x)) + u1 * phi1(chi(x)) + u2 * phi2(chi(x))
+
+                    xx = np.linspace(x0, x2, elpoints)
+
+                    ax.plot(xx, uh(xx), 'k-')
+
+            return
 
 
 def main():
@@ -316,12 +363,12 @@ def main():
     Ns = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
     for N in Ns:
 
-        print(N)
-        if N < 64:
+        print(f'\n\nN = {N}')
+        if N < 32:
             fig, axs = plt.subplots(1,2)
 
         p = 1
-        print(p)
+        print(f'p = {p}', end='\t')
 
         femsolver.build_triangulation(N, p)
         femsolver.build_stiffness_matrix(p)
@@ -333,10 +380,10 @@ def main():
         E1.append(E)
 
         if N < 64:
-            femsolver.plot_solution(ax=axs[0])
+            femsolver.plot_solution(ax=axs[0], simple=False)
 
         p = 2
-        print(p)
+        print(f'p = {p}', end='\t')
 
         femsolver.build_triangulation(N, p)
         femsolver.build_stiffness_matrix(p)
@@ -347,11 +394,9 @@ def main():
         E = femsolver.error(u_ex)
         E2.append(E)
 
-        if N < 64:
-            femsolver.plot_solution(ax=axs[1])
+        if N < 32:
+            femsolver.plot_solution(ax=axs[1], simple=False)
 
-    #print(E1)
-    #print(E2)
     Ns = np.array(Ns)
     E1 = np.array(E1)
     E2 = np.array(E2)
@@ -373,9 +418,9 @@ def main():
 
 
     beta1 = beta(np.log(Ns), np.log(E1))
-    print(beta1)
+    print(f'{-beta1:.2f}')
     beta2 = beta(np.log(Ns), np.log(E2))
-    print(beta2)
+    print(f'{-beta2:.2f}')
 
     plt.show()
 
