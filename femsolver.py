@@ -5,6 +5,17 @@ import matplotlib
 import matplotlib.pyplot as plt
 from gauss_quadrature import *
 
+def beta(x, y):
+    '''
+        Estimator for the coefficient of beta in linear regression model
+            y = alpha + beta * x
+    '''
+    n = x.shape[0]
+    
+    beta = np.sum( (x - np.mean(x)) * (y - np.mean(y))) / np.sum( (x - np.mean(x))**2 )
+
+    return beta
+
 
 class Femsolver:
     """
@@ -360,11 +371,13 @@ def main():
     E1 = []
     E2 = []
 
+    PLT_LIM = 64
+
     Ns = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
     for N in Ns:
 
         print(f'\n\nN = {N}')
-        if N < 32:
+        if N < PLT_LIM:
             fig, axs = plt.subplots(1,2)
 
         p = 1
@@ -379,7 +392,7 @@ def main():
         E = femsolver.error(u_ex)
         E1.append(E)
 
-        if N < 64:
+        if N < PLT_LIM:
             femsolver.plot_solution(ax=axs[0], simple=False)
 
         p = 2
@@ -394,24 +407,12 @@ def main():
         E = femsolver.error(u_ex)
         E2.append(E)
 
-        if N < 32:
+        if N < PLT_LIM:
             femsolver.plot_solution(ax=axs[1], simple=False)
 
     Ns = np.array(Ns)
     E1 = np.array(E1)
     E2 = np.array(E2)
-
-
-    def beta(x, y):
-        '''
-            Estimator for the coefficient of beta in linear regression model
-                y = alpha + beta * x
-        '''
-        n = x.shape[0]
-        
-        beta = np.sum( (x - np.mean(x)) * (y - np.mean(y))) / np.sum( (x - np.mean(x))**2 )
-
-        return beta
 
 
     beta1 = beta(np.log(Ns), np.log(E1))
