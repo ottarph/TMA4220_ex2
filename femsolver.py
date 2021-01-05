@@ -383,7 +383,7 @@ def main():
             femsolver.plot_solution(ax=axs[0], simple=False)
 
         p = 2
-        print(f'p = {p}', end='\t')
+        print(f'p = {p}')
 
         femsolver.build_triangulation(N, p)
         femsolver.build_stiffness_matrix(p)
@@ -401,9 +401,6 @@ def main():
     E1 = np.array(E1)
     E2 = np.array(E2)
 
-    plt.figure()
-    plt.loglog(Ns, E1, 'k--')
-    plt.loglog(Ns, E2, 'k:')
 
     def beta(x, y):
         '''
@@ -421,6 +418,15 @@ def main():
     print(f'{-beta1:.2f}')
     beta2 = beta(np.log(Ns), np.log(E2))
     print(f'{-beta2:.2f}')
+
+    plt.figure()
+    plt.loglog(Ns, E1, 'k--', label=f"$p = 1$ elements, \n slope $ = {beta1:.2f}$")
+    plt.loglog(Ns, E2, 'k:', label=f"$p = 2$ elements, \n slope $ = {beta2:.2f}$")
+
+    plt.xlabel("$h$")
+    plt.ylabel("Error")
+    plt.title("Error as function of $h$.")
+    plt.legend()
 
     plt.show()
 
